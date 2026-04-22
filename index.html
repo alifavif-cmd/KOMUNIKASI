@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HT Julianto">
+<title>HT JULIANTO</title>
+
+<script>
+window._pnSDKReady=false;window._pnSDKFailed=false;
+function _onPNLoad(){window._pnSDKReady=true;if(window._pnSDKReadyCb)window._pnSDKReadyCb();}
+function _onPNError(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/pubnub@7.2.0/dist/web/pubnub.min.js';
+  s.onload=_onPNLoad;
+  s.onerror=function(){window._pnSDKFailed=true;if(window._pnSDKFailCb)window._pnSDKFailCb();};
+  document.head.appendChild(s);
+}
+</script>
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"
+        onload="_onPNLoad()" onerror="_onPNError()"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#0d0d0d;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px 14px 36px;font-family:'Courier New',monospace;color:#eee;}
+
+/* ═══ REGISTER SCREEN ═══ */
+#regScreen{position:fixed;inset:0;background:#050a05;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:28px;}
+#regScreen.hide{display:none;}
+.reg-logo{font-size:30px;}
+.reg-title{font-size:15px;color:#ff6b00;letter-spacing:4px;font-weight:bold;}
+.reg-sub{font-size:9px;color:#282828;letter-spacing:3px;text-align:center;}
+.reg-box{width:100%;max-width:320px;background:#0e1a0e;border:2px solid #1e3a1e;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;}
+.reg-label{font-size:9px;color:#3a7800;letter-spacing:3px;}
+.reg-input{background:#071001;border:2px solid #1e3a1e;border-radius:8px;color:#aed000;font-family:'Courier New',monospace;font-size:20px;font-weight:bold;letter-spacing:3px;padding:12px 14px;width:100%;text-transform:uppercase;outline:none;}
+.reg-input:focus{border-color:#3a7800;}
+.reg-input::placeholder{color:#1e3a1e;font-size:11px;letter-spacing:2px;text-transform:none;}
+.reg-btn{width:100%;height:54px;background:linear-gradient(135deg,#1a5c00,#0e3800);border:2px solid #3a7800;border-radius:10px;color:#aed000;font-size:14px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;touch-action:manipulation;}
+.reg-btn:active{transform:scale(.97);}
+.reg-err{font-size:10px;color:#dd2222;letter-spacing:2px;text-align:center;min-height:14px;}
+
+/* ═══ BLOCKED ═══ */
+#blockedScreen{position:fixed;inset:0;background:#080000;z-index:950;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;text-align:center;}
+#blockedScreen.show{display:flex;}
+.blk-icon{font-size:52px;}
+.blk-title{font-size:14px;color:#dd2222;letter-spacing:4px;font-weight:bold;}
+.blk-msg{font-size:10px;color:#551111;letter-spacing:1px;line-height:1.9;max-width:280px;}
+
+/* ═══ KICK OVERLAY ═══ */
+#kickOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:800;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;text-align:center;}
+#kickOverlay.show{display:flex;}
+.kick-icon{font-size:44px;}
+.kick-title{font-size:14px;color:#ff8800;letter-spacing:4px;font-weight:bold;}
+.kick-msg{font-size:10px;color:#664400;letter-spacing:1px;line-height:1.9;max-width:280px;}
+.kick-reload{margin-top:10px;padding:10px 24px;background:#1a0800;border:2px solid #663300;border-radius:8px;color:#ff8800;font-family:'Courier New',monospace;font-size:11px;font-weight:bold;letter-spacing:2px;cursor:pointer;touch-action:manipulation;}
+
+/* ═══ OFF OVERLAY ═══ */
+#offOverlay{display:none;position:fixed;inset:0;background:#050505;z-index:700;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+#offOverlay.show{display:flex;}
+.off-logo{font-size:13px;color:#1a1a1a;letter-spacing:4px;}
+.off-pwrbtn{width:84px;height:84px;border-radius:50%;background:#0c0c0c;border:2px solid #1e1e1e;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.off-pwrbtn:active{transform:scale(.9);}
+.off-pwrbtn svg{width:38px;height:38px;stroke:#262626;fill:none;stroke-width:2.5;stroke-linecap:round;}
+.off-hint{font-size:10px;color:#1a1a1a;letter-spacing:3px;}
+
+/* ═══ HEADER ═══ */
+.hdr{width:100%;max-width:340px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.hdr-left{display:flex;flex-direction:column;gap:2px;}
+.hdr h1{font-size:15px;color:#ff6b00;letter-spacing:3px;}
+.hdr-name{font-size:9px;color:#3a7800;letter-spacing:2px;}
+#pwrBtn{width:50px;height:50px;border-radius:50%;background:#141414;border:2px solid #282828;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none;}
+#pwrBtn svg{width:22px;height:22px;stroke:#404040;fill:none;stroke-width:2.5;stroke-linecap:round;transition:stroke .2s;}
+#pwrBtn.on{border-color:#2ecc2e;box-shadow:0 0 14px rgba(46,204,46,.2);}
+#pwrBtn.on svg{stroke:#2ecc2e;}
+#pwrBtn:active{transform:scale(.9);}
+#pwrBtn.on::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(46,204,46,.2);animation:pr 2s infinite;}
+@keyframes pr{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.4);opacity:0}}
+
+/* ═══ LCD ═══ */
+.lcd{width:100%;max-width:340px;background:#071401;border:2px solid #142806;border-radius:10px;padding:12px 14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.lcd::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.1) 3px,rgba(0,0,0,.1) 4px);}
+.lcd-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.lcd-lbl{font-size:9px;color:#2e5808;letter-spacing:3px;}
+#badge{font-size:9px;letter-spacing:2px;padding:2px 8px;border-radius:4px;background:#0a1c04;color:#264804;border:1px solid #142806;}
+#badge.stby{background:#141000;color:#806000;border-color:#281e00;}
+#badge.tx{background:#180400;color:#ff2200;border-color:#380800;animation:bl .4s infinite;}
+#badge.rx{background:#001418;color:#0099cc;border-color:#002e38;animation:bl .4s infinite;}
+#badge.load{background:#0e0a00;color:#cc8800;border-color:#291c00;animation:bl 1s infinite;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+#lcdNum{font-size:58px;font-weight:bold;color:#aed000;text-shadow:0 0 20px rgba(174,208,0,.28);line-height:1;text-align:center;margin:4px 0;letter-spacing:4px;}
+#lcdNum.dim{color:#1e2c00;text-shadow:none;}
+#lcdSt{font-size:11px;letter-spacing:2px;color:#2e5808;text-align:center;min-height:15px;}
+#lcdSt.ok{color:#2ecc2e;}#lcdSt.err{color:#dd2222;}#lcdSt.info{color:#dd8800;}
+#lcdSt.tx{color:#ff2200;animation:bl .4s infinite;}#lcdSt.rx{color:#0099cc;animation:bl .4s infinite;}
+#lcdPeers{font-size:10px;color:#182804;text-align:center;margin-top:6px;min-height:13px;}
+#lcdPeers.on{color:#44881a;}
+
+/* ═══ MODE ═══ */
+.modewrap{width:100%;max-width:340px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.mbtn{height:50px;background:#0e0e0e;border:2px solid #1e1e1e;border-radius:10px;color:#3a3a3a;font-size:12px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+.mbtn:active{transform:scale(.95);}
+.mbtn.an{background:#071e00;border-color:#3a7800;color:#aed000;}
+.mbtn.as{background:#120e00;border-color:#806000;color:#ffcc00;}
+
+#stbyNotice{width:100%;max-width:340px;background:#120e00;border:1px solid #281e00;border-radius:8px;padding:7px 12px;display:none;align-items:center;gap:8px;margin-bottom:12px;font-size:9px;color:#806000;letter-spacing:2px;}
+#stbyNotice.show{display:flex;}
+.sdot{width:7px;height:7px;border-radius:50%;background:#bb8800;flex-shrink:0;animation:sp 1.5s infinite;}
+@keyframes sp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+
+/* ═══ CHANNEL ═══ */
+.chlbl{width:100%;max-width:340px;font-size:9px;color:#282828;letter-spacing:3px;text-align:center;margin-bottom:8px;}
+.chgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%;max-width:340px;margin-bottom:14px;}
+.cbtn{height:54px;background:#121212;border:2px solid #1e1e1e;border-radius:10px;color:#484848;font-size:21px;font-weight:bold;font-family:'Courier New',monospace;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;position:relative;transition:opacity .2s;}
+.cbtn:active{transform:scale(.93);}
+.cbtn.act{background:#071e00;border-color:#3a7800;color:#aed000;box-shadow:0 0 12px rgba(174,208,0,.15);}
+.cbtn.act::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:#2ecc2e;box-shadow:0 0 5px #2ecc2e;}
+.cbtn.notready{opacity:.32;cursor:not-allowed;}
+
+/* ═══ PTT ═══ */
+.pttwrap{width:100%;max-width:340px;margin-bottom:12px;}
+#pttBtn{width:100%;height:96px;background:linear-gradient(160deg,#c03800,#781e00);border:3px solid #c04400;border-radius:14px;color:#fff;font-size:18px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:3px;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-user-select:none;user-select:none;touch-action:none;cursor:pointer;box-shadow:0 5px 18px rgba(160,46,0,.28),inset 0 1px 0 rgba(255,255,255,.07);}
+#pttBtn.act{background:linear-gradient(160deg,#ff4400,#bb2000);border-color:#ffaa00;transform:scale(.97);box-shadow:0 2px 8px rgba(255,80,0,.5),0 0 30px rgba(255,60,0,.15);}
+#pttBtn.dis{background:linear-gradient(160deg,#1c1c1c,#101010);border-color:#202020;color:#2e2e2e;pointer-events:none;}
+.ptthint{text-align:center;font-size:9px;color:#202020;letter-spacing:2px;margin-top:6px;}
+
+/* ═══ BARS ═══ */
+#rxWrap{width:100%;max-width:340px;height:8px;border-radius:4px;background:#001218;overflow:hidden;margin-bottom:8px;}
+#rxFill{height:100%;width:0%;background:linear-gradient(to right,#003344,#00bbee);border-radius:4px;transition:width .06s;}
+#txWrap{width:100%;max-width:340px;height:8px;border-radius:4px;background:#180400;overflow:hidden;margin-bottom:8px;display:none;}
+#txWrap.show{display:block;}
+#txFill{height:100%;width:0%;background:linear-gradient(to right,#660000,#ff4400);border-radius:4px;transition:width .06s;}
+
+#srow{width:100%;max-width:340px;text-align:center;font-size:10px;color:#1e1e1e;letter-spacing:2px;min-height:15px;}
+#srow.ok{color:#2ecc2e;}#srow.err{color:#dd2222;}#srow.info{color:#dd8800;}
+
+/* ═══ BANNERS (sama persis v13) ═══ */
+#audioBanner{width:100%;max-width:340px;background:#001220;border:1px solid #003050;border-radius:8px;padding:8px 12px;display:none;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:9px;color:#0099cc;letter-spacing:2px;}
+#audioBanner.show{display:flex;}
+#audioBanner button{background:#003050;border:1px solid #006090;border-radius:6px;color:#00bbee;font-size:9px;font-family:'Courier New',monospace;letter-spacing:1px;padding:4px 10px;cursor:pointer;touch-action:manipulation;}
+
+#micBanner{width:100%;max-width:340px;background:#1a0000;border:2px solid #cc0000;border-radius:10px;padding:10px 14px;display:none;flex-direction:column;gap:8px;margin-bottom:10px;}
+#micBanner.show{display:flex;}
+#micBanner p{font-size:10px;color:#ff6666;letter-spacing:1px;line-height:1.6;margin:0;}
+#micRetry{background:#cc0000;border:none;border-radius:8px;color:#fff;font-size:11px;font-family:'Courier New',monospace;font-weight:bold;letter-spacing:2px;padding:10px;cursor:pointer;touch-action:manipulation;width:100%;}
+#micRetry:active{transform:scale(.97);}
+
+#netBanner{width:100%;max-width:340px;background:#0e0800;border:1px solid #2a1a00;border-radius:8px;padding:7px 12px;display:none;align-items:center;gap:8px;margin-bottom:10px;font-size:9px;color:#cc7700;letter-spacing:2px;}
+#netBanner.show{display:flex;}
+.nbdot{width:7px;height:7px;border-radius:50%;background:#ff8800;flex-shrink:0;animation:nb 0.8s infinite;}
+@keyframes nb{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ═══ DEBUG ═══ */
+#dbgPanel{width:100%;max-width:340px;background:#000;border:1px solid #333;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:10px;color:#0f0;font-family:'Courier New',monospace;line-height:1.8;word-break:break-all;min-height:80px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ BLOCKED (ban permanen) ═══ -->
+<div id="blockedScreen">
+  <div class="blk-icon">🚫</div>
+  <div class="blk-title">AKSES DIBLOKIR</div>
+  <div class="blk-msg">Anda telah diblokir oleh Administrator.<br>Hubungi admin untuk informasi lebih lanjut.</div>
+</div>
+
+<!-- ═══ KICK OVERLAY ═══ -->
+<div id="kickOverlay">
+  <div class="kick-icon">⚠️</div>
+  <div class="kick-title">DIPUTUS ADMIN</div>
+  <div class="kick-msg" id="kickMsg">Anda telah diputus dari jaringan oleh Administrator.</div>
+  <button class="kick-reload" onclick="location.reload()">↻ COBA LAGI</button>
+</div>
+
+<!-- ═══ REGISTER SCREEN ═══ -->
+<div id="regScreen">
+  <div class="reg-logo">📡</div>
+  <div class="reg-title">HT JULIANTO</div>
+  <div class="reg-sub">KOMUNIKASI DIGITAL</div>
+  <div class="reg-box">
+    <div class="reg-label">MASUKKAN NAMA ANDA</div>
+    <input class="reg-input" id="regName" type="text" maxlength="16"
+      placeholder="contoh: BUDI..."
+      autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+    <div class="reg-err" id="regErr"></div>
+    <button class="reg-btn" ontouchstart="doRegister(event)" onclick="doRegister(event)">▶ MASUK JARINGAN</button>
+  </div>
+  <div class="reg-sub" style="color:#151515">Nama terlihat oleh sesama pengguna</div>
+</div>
+
+<!-- ═══ OFF OVERLAY ═══ -->
+<div id="offOverlay">
+  <div class="off-logo">📡 HT JULIANTO</div>
+  <div class="off-pwrbtn" onclick="pwrOn()">
+    <svg viewBox="0 0 24 24"><path d="M12 2v6M6.34 6.34A9 9 0 1 0 17.66 6.34"/></svg>
+  </div>
+  <div class="off-hint">TEKAN UNTUK NYALAKAN</div>
+</div>
+
+<!-- ═══ MAIN UI ═══ -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>📡 HT JULIANTO</h1>
+    <div class="hdr-name" id="hdrName">KOMUNIKASI DIGITAL</div>
+  </div>
+  <div id="pwrBtn" class="on" onclick="pwrOff()">
+    <svg viewBox="0 0 24 24"><path d="M12 2v6M6.34 6.34A9 9 0 1 0 17.66 6.34"/></svg>
+  </div>
+</div>
+
+<div id="audioBanner">
+  <span>🔊 KETUK LAYAR AKTIFKAN AUDIO</span>
+  <button onclick="forceUnlockAudio()">AKTIFKAN</button>
+</div>
+
+<div id="micBanner">
+  <p>⚠ MIKROFON DITOLAK — hanya bisa mendengar, tidak bisa bicara.<br>
+  Tap tombol di bawah lalu pilih <b>IZINKAN</b> saat popup muncul.<br>
+  Atau: Chrome → ⋮ → Setelan → Izin situs → Mikrofon → Izinkan.</p>
+  <button id="micRetry" onclick="retryMic()">🎙 IZINKAN MIKROFON</button>
+</div>
+
+<div id="netBanner">
+  <div class="nbdot"></div>
+  <span id="netBannerTxt">MEMUAT SDK JARINGAN...</span>
+</div>
+
+<div class="lcd">
+  <div class="lcd-top"><span class="lcd-lbl">CHANNEL</span><span id="badge" class="load">MEMUAT</span></div>
+  <div id="lcdNum" class="dim">-</div>
+  <div id="lcdSt" class="info">MEMUAT SDK...</div>
+  <div id="lcdPeers">Menghubungkan ke jaringan...</div>
+</div>
+
+<div class="modewrap">
+  <button class="mbtn an" id="btnN" onclick="doMode('normal')">📶 NORMAL</button>
+  <button class="mbtn"    id="btnS" onclick="doMode('standby')">💤 STANDBY</button>
+</div>
+<div id="stbyNotice"><div class="sdot"></div><span>STANDBY · MONITOR AKTIF · LAYAR BISA MATI</span></div>
+
+<div class="chlbl">PILIH CHANNEL — SAMA = TERSAMBUNG</div>
+<div class="chgrid">
+  <button class="cbtn notready" onclick="doCh(1)">1</button>
+  <button class="cbtn notready" onclick="doCh(2)">2</button>
+  <button class="cbtn notready" onclick="doCh(3)">3</button>
+  <button class="cbtn notready" onclick="doCh(4)">4</button>
+  <button class="cbtn notready" onclick="doCh(5)">5</button>
+  <button class="cbtn notready" onclick="doCh(6)">6</button>
+  <button class="cbtn notready" onclick="doCh(7)">7</button>
+  <button class="cbtn notready" onclick="doCh(8)">8</button>
+  <button class="cbtn notready" onclick="doCh(9)">9</button>
+</div>
+
+<div class="pttwrap">
+  <button id="pttBtn"
+    ontouchstart="pttON(event)"
+    ontouchend="pttOFF(event)"
+    ontouchcancel="pttOFF(event)">
+    🎙 TAHAN = BICARA
+  </button>
+  <div class="ptthint" id="pttHint">TAHAN TOMBOL UNTUK BICARA · LEPAS = SELESAI</div>
+</div>
+
+<div id="txWrap"><div id="txFill"></div></div>
+<div id="rxWrap"><div id="rxFill"></div></div>
+<div id="srow">MENGINISIALISASI...</div>
+<div id="dbgPanel">DBG: init...</div>
+<div id="audioBox" style="display:none"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// ▼ KONFIGURASI — UBAH SESUAI KEBUTUHAN
+// ══════════════════════════════════════════
+const GID          = 'JULIANTO2024';
+const PP           = 'demo';
+const PS           = 'demo';
+const ADMIN_SECRET = 'JULIADMIN99';   // harus sama dengan admin.html
+// ══════════════════════════════════════════
+
+const LOBBY_CH = 'ht_'+GID+'_lobby';
+const CMD_CH   = 'ht_'+GID+'_cmd_'+ADMIN_SECRET;
+
+const ICE_SERVERS = [
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'stun:stun2.l.google.com:19302'},
+  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const ME   = genId();
+let NAME   = '';
+let ch     = 0, pn = null, peers = {};
+let mic    = null;
+let isTX   = false, isOn = true, mode = 'normal';
+let actx   = null, wl = null;
+let pnReady = false;
+let txAna = null, txBuf = null, txRaf = null;
+let hbTimer = null;
+
+const D = id => document.getElementById(id);
+
+let _dbgLines = [];
+function dbg(t){
+  const ts = new Date().toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  _dbgLines.push('['+ts+'] '+t);
+  if(_dbgLines.length > 8) _dbgLines.shift();
+  const el = D('dbgPanel');
+  if(el) el.textContent = _dbgLines.join('\n');
+}
+
+// ══════════════════════════════════════════
+// BAN CHECK (cek sebelum apapun)
+// ══════════════════════════════════════════
+(function(){
+  if(localStorage.getItem('ht_banned_'+GID)==='1'){
+    D('regScreen').classList.add('hide');
+    D('blockedScreen').classList.add('show');
+  }
+})();
+
+// ══════════════════════════════════════════
+// REGISTER
+// ══════════════════════════════════════════
+D('regName').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister(e);});
+
+function doRegister(e){
+  if(e&&e.cancelable)e.preventDefault();
+  const val = D('regName').value.trim().toUpperCase();
+  if(!val||val.length<2){D('regErr').textContent='Nama minimal 2 karakter';return;}
+  if(!/^[A-Z0-9 _\-]+$/.test(val)){D('regErr').textContent='Gunakan huruf/angka saja';return;}
+  NAME = val;
+  D('hdrName').textContent = '👤 '+NAME;
+  D('regScreen').classList.add('hide');
+  startSystem();
+}
+
+function startSystem(){
+  setSt('Minta izin mikrofon...','info');
+  showNetBanner(true,'MEMUAT SDK JARINGAN...');
+  navigator.mediaDevices.getUserMedia({
+    audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
+    video:false
+  }).then(s=>{
+    mic=s;
+    mic.getAudioTracks().forEach(t=>t.enabled=false);
+    dbg('MIC OK');
+    setSt('Mikrofon OK · Memuat jaringan...','ok');
+    initOrWaitPN();
+  }).catch(e=>{
+    dbg('MIC GAGAL: '+e.name+' → RX only');
+    setSt('⚠ MIC DITOLAK · Hanya bisa mendengar','err');
+    D('micBanner').classList.add('show');
+    initOrWaitPN();
+  });
+}
+
+// ══════════════════════════════════════════
+// AUDIO CONTEXT (dari v13 persis)
+// ══════════════════════════════════════════
+function ensureActx(){
+  if(actx){
+    if(actx.state==='suspended') actx.resume();
+    return actx;
+  }
+  try{
+    actx = new(window.AudioContext||window.webkitAudioContext)();
+    const buf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+    const src = actx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    src.connect(actx.destination); src.start();
+    return actx;
+  }catch(e){ return null; }
+}
+
+function beep(f,d,v){
+  try{
+    if(!actx)return;
+    if(actx.state==='suspended')actx.resume();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);
+    o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════
+// AUDIO UNLOCK (dari v13 persis)
+// ══════════════════════════════════════════
+let _audioUnlocked = false;
+
+function forceUnlockAudio(){
+  if(!actx) ensureActx();
+  if(actx && actx.state==='suspended') actx.resume();
+  try{
+    if(window.speechSynthesis){
+      const u=new SpeechSynthesisUtterance('');u.volume=0;
+      window.speechSynthesis.speak(u);
+      setTimeout(()=>window.speechSynthesis.cancel(),100);
+    }
+  }catch(e){}
+  if(!_audioUnlocked){ _audioUnlocked=true; dbg('AudioUnlocked'); }
+  D('audioBanner').classList.remove('show');
+  document.querySelectorAll('audio[id^="aud_"]').forEach(a=>{
+    if(a.srcObject){ a.muted=false; a.volume=1; a.play().catch(e=>dbg('rePlay:'+e.name)); }
+  });
+}
+
+document.addEventListener('touchstart', ()=>{
+  if(!actx) ensureActx();
+  if(actx && actx.state==='suspended') actx.resume();
+  dbg('gesture → actx resume');
+}, {once:true, passive:true});
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible') return;
+  if(actx && actx.state==='suspended') actx.resume();
+  D('audioBox').querySelectorAll('audio').forEach(a=>{
+    if(a.paused && a.srcObject) a.play().catch(()=>{});
+  });
+  if(isOn && mode==='normal') reqWL();
+});
+
+// ══════════════════════════════════════════
+// WAKE LOCK
+// ══════════════════════════════════════════
+async function reqWL(){try{if(!wl&&'wakeLock'in navigator)wl=await navigator.wakeLock.request('screen');}catch(e){}}
+function relWL(){try{if(wl){wl.release();wl=null;}}catch(e){}}
+
+// ══════════════════════════════════════════
+// TTS (dari v13 persis)
+// ══════════════════════════════════════════
+function speak(text, cb){
+  const done=()=>{try{if(cb)cb();}catch(e){}};
+  try{
+    if(window.speechSynthesis){
+      window.speechSynthesis.cancel();
+      if(window.speechSynthesis.paused) window.speechSynthesis.resume();
+      function doSpeak(){
+        const vv=window.speechSynthesis.getVoices();
+        const v=vv.find(x=>/id[-_]ID/i.test(x.lang))
+               ||vv.find(x=>/id/i.test(x.lang))
+               ||vv.find(x=>/female/i.test(x.name))
+               ||vv[0];
+        const parts=(text.match(/[^.!?]+[.!?]*/g)||[text]).map(s=>s.trim()).filter(Boolean);
+        let i=0;
+        function nx(){
+          if(i>=parts.length){done();return;}
+          const u=new SpeechSynthesisUtterance(parts[i++]);
+          u.lang='id-ID';u.rate=.88;u.pitch=1.15;u.volume=1;
+          if(v)u.voice=v;
+          let to=setTimeout(()=>{window.speechSynthesis.cancel();setTimeout(nx,100);},8000);
+          u.onend=()=>{clearTimeout(to);setTimeout(nx,80);};
+          u.onerror=()=>{clearTimeout(to);setTimeout(nx,80);};
+          window.speechSynthesis.resume();
+          window.speechSynthesis.speak(u);
+        }
+        nx();
+      }
+      const vv=window.speechSynthesis.getVoices();
+      if(vv.length>0){doSpeak();}
+      else{
+        let tries=0;
+        const w=setInterval(()=>{if(window.speechSynthesis.getVoices().length>0||tries++>15){clearInterval(w);doSpeak();}},100);
+        window.speechSynthesis.onvoiceschanged=()=>{clearInterval(w);window.speechSynthesis.onvoiceschanged=null;doSpeak();};
+        setTimeout(()=>{clearInterval(w);doSpeak();},2000);
+      }
+      return;
+    }
+  }catch(e){}
+  try{
+    const parts=(text.match(/[^.!?]+[.!?]*/g)||[text]).map(s=>s.trim()).filter(Boolean);
+    let i=0;
+    function nx(){
+      if(i>=parts.length){done();return;}
+      const a=new Audio();
+      a.src='https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q='+encodeURIComponent(parts[i++]);
+      a.onended=()=>setTimeout(nx,80);a.onerror=()=>setTimeout(nx,80);
+      a.play().catch(()=>setTimeout(nx,80));
+    }
+    nx();return;
+  }catch(e){}
+  done();
+}
+
+// ══════════════════════════════════════════
+// HEARTBEAT — kirim presence ke admin
+// ══════════════════════════════════════════
+function sendHeartbeat(){
+  if(!pn||!NAME)return;
+  pn.publish({channel:LOBBY_CH,message:{
+    type:'heartbeat',from:ME,name:NAME,
+    channel:ch||0,mode:mode,ts:Date.now()
+  }}).catch(()=>{});
+}
+function startHeartbeat(){
+  stopHeartbeat();
+  sendHeartbeat();
+  hbTimer=setInterval(sendHeartbeat,25000);
+}
+function stopHeartbeat(){
+  if(hbTimer){clearInterval(hbTimer);hbTimer=null;}
+}
+function sendBye(){
+  if(!pn||!NAME)return;
+  try{pn.publish({channel:LOBBY_CH,message:{type:'bye',from:ME,name:NAME}}).catch(()=>{});}catch(e){}
+}
+
+// ══════════════════════════════════════════
+// ADMIN COMMANDS — kick & ban
+// ══════════════════════════════════════════
+function handleAdminCmd(m){
+  if(!m)return;
+  const isMe = (m.target===ME)||(m.targetName===NAME);
+  if(!isMe)return;
+  if(m.type==='kick'||m.type==='kickname') doKick(m.reason||'');
+  if(m.type==='ban' ||m.type==='banname')  doBan(m.reason||'');
+}
+
+function doKick(reason){
+  stopHeartbeat();sendBye();
+  if(isTX)pttOFF(null);
+  if(mic)mic.getAudioTracks().forEach(t=>t.enabled=false);
+  Object.keys(peers).forEach(killPeer);
+  if(pn){try{pn.unsubscribeAll();}catch(e){}}
+  relWL();
+  D('kickMsg').textContent = reason?'Anda diputus: '+reason:'Anda telah diputus dari jaringan oleh Administrator.';
+  D('kickOverlay').classList.add('show');
+  dbg('KICKED: '+reason);
+}
+
+function doBan(reason){
+  localStorage.setItem('ht_banned_'+GID,'1');
+  stopHeartbeat();sendBye();
+  if(isTX)pttOFF(null);
+  if(mic)mic.getAudioTracks().forEach(t=>t.enabled=false);
+  Object.keys(peers).forEach(killPeer);
+  if(pn){try{pn.unsubscribeAll();}catch(e){}}
+  relWL();
+  D('kickOverlay').classList.remove('show');
+  D('blockedScreen').classList.add('show');
+  dbg('BANNED');
+}
+
+// ══════════════════════════════════════════
+// POWER (dari v13, tambah heartbeat)
+// ══════════════════════════════════════════
+function pwrOff(){
+  if(!isOn)return;
+  ensureActx();isOn=false;
+  stopHeartbeat();sendBye();
+  if(isTX)pttOFF(null);
+  if(mic)mic.getAudioTracks().forEach(t=>t.enabled=false);
+  if(ch){try{pub({type:'bye',from:ME});}catch(e){}Object.keys(peers).forEach(killPeer);peers={};try{pn.unsubscribeAll();}catch(e){}}
+  relWL();
+  setLCD('-','MATIKAN...','info');setSt('Sampai jumpa...','info');
+  speak('Terima kasih telah menggunakan layanan H T Julianto. Perangkat akan dimatikan. Sampai jumpa.',()=>{
+    beep(440,.15,.18);setTimeout(()=>beep(330,.2,.18),160);
+    setTimeout(()=>{D('offOverlay').classList.add('show');D('pwrBtn').classList.remove('on');},380);
+  });
+  setTimeout(()=>{if(!isOn){D('offOverlay').classList.add('show');D('pwrBtn').classList.remove('on');}},6000);
+}
+
+function pwrOn(){
+  if(isOn)return;
+  ensureActx();isOn=true;
+  D('offOverlay').classList.remove('show');D('pwrBtn').classList.add('on');
+  if(actx&&actx.state==='suspended')actx.resume();
+  if(mode==='normal')reqWL();
+  setLCD('-','MENYALA...','info');setSt('Menyalakan perangkat...','info');
+  beep(660,.08,.14);setTimeout(()=>beep(880,.08,.14),130);setTimeout(()=>beep(1100,.12,.14),260);
+  speak('Selamat datang di H T Julianto. Perangkat komunikasi Anda kini aktif. Silakan pilih channel untuk memulai. Terima kasih.');
+  if(pnReady)startHeartbeat();
+  setTimeout(()=>{
+    if(ch&&pn){setLCD(ch,'SIAP','ok');setTimeout(bHello,300);}
+    else setLCD('-','PILIH CHANNEL','info');
+    setSt(ch?'Channel '+ch+' · '+NAME:(pnReady?'Pilih channel 1–9':'Menunggu jaringan...'),'ok');
+  },300);
+}
+
+// ══════════════════════════════════════════
+// MODE (dari v13 persis)
+// ══════════════════════════════════════════
+function doMode(m){
+  if(!isOn)return;ensureActx();mode=m;
+  const N=D('btnN'),S=D('btnS'),sn=D('stbyNotice'),pb=D('pttBtn'),ph=D('pttHint'),bg=D('badge');
+  if(m==='standby'){
+    N.classList.remove('an');S.classList.add('as');sn.classList.add('show');
+    pb.classList.add('dis');ph.textContent='STANDBY · HANYA DENGAR · TEKAN NORMAL UNTUK BICARA';
+    bg.textContent='STANDBY';bg.className='stby';
+    if(isTX)pttOFF(null);
+    if(mic)mic.getAudioTracks().forEach(t=>t.enabled=false);
+    relWL();if(ch)setLCD(ch,'MONITOR','info');
+    setSt('STANDBY · Monitor ch '+(ch||'-'),'info');beep(550,.1,.12);
+  }else{
+    S.classList.remove('as');N.classList.add('an');sn.classList.remove('show');
+    pb.classList.remove('dis');ph.textContent='TAHAN TOMBOL UNTUK BICARA · LEPAS = SELESAI';
+    bg.textContent='NORMAL';bg.className='';reqWL();
+    if(ch)setLCD(ch,'SIAP','ok');
+    setSt('Channel '+(ch||'-')+' · '+NAME,'ok');beep(660,.08,.12);
+  }
+}
+
+// ══════════════════════════════════════════
+// CHANNEL (dari v13, tambah subscribe CMD_CH)
+// ══════════════════════════════════════════
+function doCh(n){
+  if(!isOn)return;ensureActx();
+  if(!pn){setSt(window._pnSDKFailed?'GAGAL JARINGAN · Refresh':'Jaringan loading · Tunggu...','err');return;}
+  if(n===ch)return;
+  if(ch){try{pub({type:'bye',from:ME});}catch(e){}Object.keys(peers).forEach(killPeer);peers={};try{pn.unsubscribeAll();}catch(e){}}
+  document.querySelectorAll('.cbtn').forEach((b,i)=>b.classList.toggle('act',i+1===n));
+  ch=n;updPeers();
+  setLCD(n,'BERGABUNG...','info');setSt('Bergabung ke Channel '+n+'...','info');
+  // Subscribe voice channel + lobby + cmd channel
+  pn.subscribe({channels:[room(),LOBBY_CH,CMD_CH]});
+  setTimeout(()=>{
+    bHello();
+    sendHeartbeat();
+    setLCD(n,mode==='standby'?'MONITOR':'SIAP',mode==='standby'?'info':'ok');
+    setSt((mode==='standby'?'STANDBY · Monitor':'Channel')+' '+n+' · '+NAME,'ok');
+  },600);
+}
+function room(){return 'ht_'+GID+'_ch'+ch;}
+
+// ══════════════════════════════════════════
+// PTT (dari v13 persis)
+// ══════════════════════════════════════════
+function pttON(e){
+  if(e&&e.cancelable)e.preventDefault();
+  if(!isOn||mode==='standby'||isTX)return;
+  ensureActx();forceUnlockAudio();
+  if(!ch){setSt('Pilih channel dulu!','err');return;}
+  isTX=true;
+  D('pttBtn').classList.add('act');
+  D('pttBtn').innerHTML='📢 SIARAN...';
+  if(mic)mic.getAudioTracks().forEach(t=>{ t.enabled=true; dbg('PTT ON en='+t.enabled); });
+  D('badge').textContent='TX';D('badge').className='tx';
+  setLCD(ch,'● TX','tx');setSt('🔴 SEDANG BICARA...','info');
+  beep(880,.07,.12);
+  D('txWrap').classList.add('show');
+  startTXMeter();
+}
+
+function pttOFF(e){
+  if(e&&e.cancelable)e.preventDefault();
+  if(!isTX)return;
+  isTX=false;
+  D('pttBtn').classList.remove('act');
+  D('pttBtn').innerHTML='🎙 TAHAN = BICARA';
+  if(mic)mic.getAudioTracks().forEach(t=>t.enabled=false);
+  D('txWrap').classList.remove('show');
+  stopTXMeter();
+  showReady();
+  beep(660,.08,.14);setTimeout(()=>beep(1320,.08,.14),110);
+}
+
+;(function(){
+  const btn=D('pttBtn');let mdown=false;
+  btn.addEventListener('mousedown',e=>{if('ontouchstart'in window)return;mdown=true;pttON(e);});
+  window.addEventListener('mouseup',()=>{if('ontouchstart'in window)return;if(mdown){mdown=false;pttOFF(null);}});
+})();
+
+function startTXMeter(){
+  if(!actx||!mic)return;
+  try{
+    if(txRaf){cancelAnimationFrame(txRaf);txRaf=null;}
+    const src=actx.createMediaStreamSource(mic);
+    txAna=actx.createAnalyser();txAna.fftSize=256;
+    src.connect(txAna);
+    txBuf=new Uint8Array(txAna.frequencyBinCount);
+    function draw(){
+      if(!isTX){D('txFill').style.width='0%';return;}
+      txAna.getByteFrequencyData(txBuf);
+      const avg=txBuf.reduce((a,b)=>a+b,0)/txBuf.length;
+      D('txFill').style.width=Math.min(100,avg*4)+'%';
+      txRaf=requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(e){}
+}
+function stopTXMeter(){
+  if(txRaf){cancelAnimationFrame(txRaf);txRaf=null;}
+  D('txFill').style.width='0%';
+}
+
+// ══════════════════════════════════════════
+// PUBNUB
+// ══════════════════════════════════════════
+function pub(msg){if(!pn||!ch)return;pn.publish({channel:room(),message:msg}).catch(()=>{});}
+function bHello(){pub({type:'hello',from:ME,name:NAME});}
+
+function onMsg(m){
+  if(!m||!m.from)return;
+  const f=m.from;
+
+  // Cek admin command dulu (dari CMD_CH atau siapapun)
+  if(m.type==='kick'||m.type==='ban'||m.type==='kickname'||m.type==='banname'){
+    handleAdminCmd(m);return;
+  }
+
+  // Heartbeat dari user lain → abaikan di sini (hanya admin yang proses)
+  if(m.type==='heartbeat')return;
+
+  if(f===ME)return;
+  switch(m.type){
+    case 'hello':if(!peers[f]){if(ME>f)makeOffer(f);else pub({type:'hello',from:ME,name:NAME});}break;
+    case 'offer': if(m.to===ME)handleOffer(f,m.sdp);break;
+    case 'answer':if(m.to===ME)handleAns(f,m.sdp);break;
+    case 'ice':   if(m.to===ME)handleICE(f,m.candidate);break;
+    case 'bye':   killPeer(f);break;
+  }
+}
+
+// ══════════════════════════════════════════
+// WebRTC (dari v13 persis — dengan recvonly transceiver)
+// ══════════════════════════════════════════
+function mkPC(pid){
+  if(peers[pid])return peers[pid].pc;
+  const pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+  peers[pid]={pc,iceBuf:[],raf:null,srcNode:null,_stream:null};
+
+  if(mic){
+    mic.getTracks().forEach(t=>{ pc.addTrack(t,mic); dbg('addTrack '+t.kind); });
+  } else {
+    try{
+      pc.addTransceiver('audio', {direction:'recvonly'});
+      dbg('transceiver recvonly (no mic)');
+    }catch(e){ dbg('transceiver err: '+e.name); }
+  }
+
+  pc.onicecandidate=({candidate})=>{
+    if(candidate)pub({type:'ice',to:pid,from:ME,candidate:{candidate:candidate.candidate,sdpMid:candidate.sdpMid,sdpMLineIndex:candidate.sdpMLineIndex}});
+  };
+  pc.oniceconnectionstatechange=()=>{ dbg('ICE: '+pc.iceConnectionState); };
+  pc.onconnectionstatechange=()=>{
+    dbg('PC: '+pc.connectionState);
+    updPeers();
+    const s=pc.connectionState;
+    if(s==='failed'||s==='closed'||s==='disconnected') killPeer(pid);
+  };
+  pc.ontrack=({streams,track})=>{
+    dbg('ONTRACK! '+track.kind+' muted='+track.muted);
+    const s=streams[0]||new MediaStream([track]);
+    playAudio(s,pid);
+  };
+  updPeers();return pc;
+}
+
+async function makeOffer(pid){try{const pc=mkPC(pid),o=await pc.createOffer();await pc.setLocalDescription(o);pub({type:'offer',to:pid,from:ME,sdp:pc.localDescription.sdp});}catch(e){}}
+async function handleOffer(fid,sdp){try{const pc=mkPC(fid);await pc.setRemoteDescription({type:'offer',sdp});for(const c of peers[fid].iceBuf){try{await pc.addIceCandidate(c);}catch(e){}}peers[fid].iceBuf=[];const a=await pc.createAnswer();await pc.setLocalDescription(a);pub({type:'answer',to:fid,from:ME,sdp:pc.localDescription.sdp});}catch(e){}}
+async function handleAns(fid,sdp){if(!peers[fid])return;try{const pc=peers[fid].pc;if(pc.signalingState==='have-local-offer'){await pc.setRemoteDescription({type:'answer',sdp});for(const c of peers[fid].iceBuf){try{await pc.addIceCandidate(c);}catch(e){}}peers[fid].iceBuf=[];}}catch(e){}}
+async function handleICE(fid,c){if(!peers[fid])return;const cand=new RTCIceCandidate(c),pc=peers[fid].pc;if(pc.remoteDescription&&pc.remoteDescription.type){try{await pc.addIceCandidate(cand);}catch(e){}}else peers[fid].iceBuf.push(cand);}
+
+function killPeer(pid){
+  if(!peers[pid])return;
+  if(peers[pid].raf){cancelAnimationFrame(peers[pid].raf);peers[pid].raf=null;}
+  if(peers[pid].srcNode){try{peers[pid].srcNode.disconnect();}catch(e){}}
+  try{peers[pid].pc.close();}catch(e){}
+  const el=D('aud_'+pid);if(el)el.remove();
+  delete peers[pid];updPeers();
+  D('rxFill').style.width='0%';
+  if(!isTX)showReady();
+}
+
+// ══════════════════════════════════════════
+// AUDIO PLAYBACK (dari v13 persis — muted trick)
+// ══════════════════════════════════════════
+function routeAudioViaActx(s, pid){
+  if(!actx) return false;
+  try{
+    if(actx.state==='suspended') actx.resume();
+    if(peers[pid]&&peers[pid].srcNode){try{peers[pid].srcNode.disconnect();}catch(e){}}
+    if(peers[pid]&&peers[pid].raf){cancelAnimationFrame(peers[pid].raf);peers[pid].raf=null;}
+    const src=actx.createMediaStreamSource(s);
+    const ana=actx.createAnalyser();ana.fftSize=512;
+    src.connect(ana);
+    if(peers[pid]){peers[pid].srcNode=src;peers[pid].anaNode=ana;}
+    const buf=new Uint8Array(ana.frequencyBinCount);let sc=0;
+    function draw(){
+      if(!peers[pid]){D('rxFill').style.width='0%';return;}
+      ana.getByteFrequencyData(buf);
+      const avg=buf.reduce((a,b)=>a+b,0)/buf.length;
+      D('rxFill').style.width=Math.min(100,avg*4)+'%';
+      if(avg>6&&!isTX){sc=0;showRX(pid);}else{sc++;if(sc>30&&!isTX)showReady();}
+      peers[pid].raf=requestAnimationFrame(draw);
+    }
+    draw();return true;
+  }catch(e){return false;}
+}
+
+function playAudio(s, pid){
+  if(peers[pid]) peers[pid]._stream = s;
+  const tracks = s.getAudioTracks();
+  dbg('playAudio pid='+pid.slice(0,5)+' tracks='+tracks.length+(tracks[0]?' muted='+tracks[0].muted+' en='+tracks[0].enabled:''));
+
+  if(!actx) ensureActx();
+  if(actx && actx.state!=='closed') routeAudioViaActx(s, pid);
+
+  let el = D('aud_'+pid);
+  if(!el){
+    el = document.createElement('audio');
+    el.id = 'aud_'+pid;
+    el.setAttribute('playsinline','');
+    el.setAttribute('webkit-playsinline','');
+    document.body.appendChild(el);
+    dbg('audio el dibuat');
+  }
+  el.srcObject = s;
+
+  // MUTED TRICK (v13): muted dulu → play() pasti berhasil → unmute
+  el.muted = true;
+  el.volume = 1;
+
+  el.play().then(()=>{
+    dbg('play OK muted→unmute');
+    el.muted = false;
+    D('audioBanner').classList.remove('show');
+    tracks.forEach(t=>{
+      t.onunmute = ()=>{ dbg('track unmuted'); showRX(pid); };
+      t.onmute   = ()=>{ if(!isTX) showReady(); };
+    });
+  }).catch(err=>{
+    dbg('play GAGAL: '+err.name);
+    D('audioBanner').classList.add('show');
+    const retry = ()=>{
+      el.muted = true;
+      el.play().then(()=>{ el.muted=false; dbg('retry OK'); D('audioBanner').classList.remove('show'); })
+               .catch(e=>dbg('retry gagal:'+e.name));
+    };
+    document.addEventListener('touchstart', retry, {once:true, passive:true});
+    document.addEventListener('click',      retry, {once:true, passive:true});
+  });
+}
+
+// ══════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════
+function showReady(){
+  if(isTX)return;
+  const bg=D('badge');
+  D('rxFill').style.width='0%';
+  if(mode==='standby'){bg.textContent='STANDBY';bg.className='stby';setLCD(ch||'-',ch?'MONITOR':'PILIH CH','info');setSt('STANDBY · Monitor ch '+(ch||'-'),'info');}
+  else{bg.textContent='NORMAL';bg.className='';setLCD(ch||'-',ch?'SIAP':'PILIH CH',ch?'ok':'info');setSt('Channel '+(ch||'-')+' · '+NAME,'ok');}
+}
+function showRX(pid){
+  D('badge').textContent='RX';D('badge').className='rx';
+  setLCD(ch,'◀ RX','rx');
+  setSt('📡 Menerima dari '+pid+(mode==='standby'?' [STANDBY]':''),'info');
+}
+function setLCD(num,st,cls){
+  const n=D('lcdNum');n.textContent=num;n.className=num==='-'?'dim':'';
+  const s=D('lcdSt');s.textContent=st;s.className=cls||'';
+}
+function updPeers(){
+  const n=Object.keys(peers).length,el=D('lcdPeers');
+  if(n===0){el.textContent='Tidak ada radio lain di channel ini';el.className='';}
+  else{el.textContent='● '+n+' radio terhubung';el.className='on';}
+}
+function setSt(t,c){const el=D('srow');el.textContent=t;el.className=c||'';}
+function setChReady(ready){
+  document.querySelectorAll('.cbtn').forEach(b=>{
+    if(ready)b.classList.remove('notready');else b.classList.add('notready');
+  });
+}
+function showNetBanner(show,txt){
+  const b=D('netBanner');
+  if(show){b.classList.add('show');D('netBannerTxt').textContent=txt||'MEMUAT JARINGAN...';}
+  else b.classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+// RETRY MIC (dari v13 persis)
+// ══════════════════════════════════════════
+function retryMic(){
+  dbg('Minta izin mic...');
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})
+  .then(s=>{
+    mic=s;
+    mic.getAudioTracks().forEach(t=>t.enabled=false);
+    dbg('MIC OK setelah retry!');
+    setSt('✅ Mikrofon aktif · Siap bicara','ok');
+    D('micBanner').classList.remove('show');
+    if(ch&&pn){
+      const oldCh=ch; ch=0;
+      Object.keys(peers).forEach(killPeer); peers={};
+      try{pn.unsubscribeAll();}catch(e){}
+      setTimeout(()=>doCh(oldCh),400);
+    }
+  })
+  .catch(e=>{
+    dbg('Retry gagal: '+e.name);
+    setSt('Masih ditolak · Cek izin di Chrome','err');
+  });
+}
+
+// ══════════════════════════════════════════
+// PUBNUB INIT
+// ══════════════════════════════════════════
+function initOrWaitPN(){
+  if(window._pnSDKFailed){setSt('GAGAL LOAD SDK · Cek internet','err');showNetBanner(true,'GAGAL JARINGAN · REFRESH');return;}
+  if(window._pnSDKReady){ initPN(); }
+  else{
+    showNetBanner(true,'MENGHUBUNGKAN SDK...');
+    window._pnSDKReadyCb = initPN;
+    window._pnSDKFailCb  = ()=>{setSt('GAGAL LOAD JARINGAN · Cek koneksi','err');showNetBanner(true,'GAGAL JARINGAN · REFRESH');};
+    setTimeout(()=>{if(!pnReady){setSt('Jaringan timeout · Refresh','err');showNetBanner(true,'TIMEOUT · REFRESH');}},15000);
+  }
+}
+
+function initPN(){
+  try{ pn=new PubNub({publishKey:PP,subscribeKey:PS,uuid:ME}); }
+  catch(e){ setSt('GAGAL INIT JARINGAN','err');showNetBanner(true,'ERROR · REFRESH');return; }
+
+  pn.addListener({
+    message:({message})=>onMsg(message),
+    status:({category})=>{
+      if(category==='PNConnectedCategory'){
+        pnReady=true;setChReady(true);showNetBanner(false);
+        D('badge').textContent='NORMAL';D('badge').className='';
+        setSt('Terhubung · Pilih channel 1–9','ok');
+        setLCD(ch||'-',ch?'SIAP':'PILIH CH',ch?'ok':'info');
+        startHeartbeat(); // mulai heartbeat saat connected
+      }
+      if(category==='PNNetworkDownCategory'){
+        pnReady=false;setChReady(false);
+        showNetBanner(true,'JARINGAN TERPUTUS...');
+        setSt('Jaringan terputus...','err');
+        stopHeartbeat();
+      }
+      if(category==='PNReconnectedCategory'){
+        pnReady=true;setChReady(true);showNetBanner(false);
+        setSt('Terhubung kembali','ok');
+        startHeartbeat();
+        if(ch)bHello();
+      }
+    }
+  });
+
+  // Subscribe lobby & CMD dari awal agar bisa terima perintah admin kapanpun
+  pn.subscribe({channels:[LOBBY_CH,CMD_CH,'ht_init_'+ME]});
+  setLCD('-','MENGHUBUNGKAN','info');
+  setSt('Menghubungkan ke jaringan...','info');
+  showNetBanner(true,'MENGHUBUNGKAN...');
+}
+
+function genId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:5},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+
+window.addEventListener('beforeunload',()=>{stopHeartbeat();sendBye();});
+</script>
+</body>
+</html>
